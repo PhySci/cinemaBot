@@ -1,1 +1,1 @@
-pytelegrambotapi==3.7.4
+aiogramm==2.11.2
