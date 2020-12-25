@@ -3,44 +3,69 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.utils.callback_data import CallbackData
 import logging
 from pprint import pprint
+from datetime import datetime, timedelta
+
+import locale
+locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 
 bot = Bot(token=API_KEY)
 dp = Dispatcher(bot)
 
 date_cb = CallbackData('date_cb', 'action', 'date')
 
-# @dp.message_handler()
-async def echo(message: types.Message):
-    await message.answer(message.text)
+
+def get_dates():
+    """
+    Return list of available dates
+
+    :return:
+    """
+    dates = []
+    today = datetime.today()
+    for delta in range(0, 5):
+        date = today + timedelta(days=delta)
+        s = date.strftime("%a, %d %b %Y")
+        dates.append((delta, s))
+    return dates
+
+def get_schedule(date: datetime):
+    res = "12:00 - 14:00 Холодное седце (7+)" +\
+          "16:00 - 18:00 Пираты XX века"
+    return res
 
 @dp.message_handler(commands=["start"])
-async def cmd_start(message: types.Message):
-    poll_keybord = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    poll_keybord.add(types.KeyboardButton(text="Создать викторину",
-                                          request_poll=types.KeyboardButtonPollType(type=types.PollType.QUIZ)))
-    poll_keybord.add(types.KeyboardButton(text="Отмена"))
-    await message.answer("Нажмите кнопку ниже и создайте викторину", reply_markup=poll_keybord)
-
-@dp.message_handler(lambda message: message.text=="Отмена")
-async def action_cancel(message: types.Message):
-    remove_keyboard = types.ReplyKeyboardRemove()
-    await message.answer("Действие отменено. Введите /start, чтобы начать заново.", reply_markup=remove_keyboard)
-
-# async def show_calendar():
-
-@dp.message_handler(commands=["show"])
 async def show_calendar(message: types.Message):
-    print(message)
+    """
+    Shows calendar
+
+    :param message:
+    :return:
+    """
     calendar_keyboard = types.InlineKeyboardMarkup()
-    calendar_keyboard.row(types.InlineKeyboardButton(text='Today', callback_data=date_cb.new(action='show_date', date='today')),
-                          types.InlineKeyboardButton(text='Tomorrow', callback_data=date_cb.new(action='show_date', date='tomorrow')))
-    await message.answer('Выберите дату', reply_markup=calendar_keyboard)
+
+    dates = get_dates()
+    for date in dates:
+        callback_data = date_cb.new(action='show_date', date=date[0])
+        calendar_keyboard.add(types.InlineKeyboardButton(text=date[1], callback_data=callback_data))
+    await message.answer('Когда вы хотели бы сходить в кино? Выберите дату.', reply_markup=calendar_keyboard)
 
 
-@dp.callback_query_handler(filter())
-async def date_handler(query: types.CallbackQuery):
-    pprint(query.__dict__)
-    await bot.send_message(query.from_user.id, text='Here we are')
+@dp.callback_query_handler(date_cb.filter(action='show_date'))
+async def show_date_handler(query: types.CallbackQuery):
+    """
+    Shows schedule for one day
+
+    :param query:
+    :return:
+    """
+    pprint(query)
+    calendar_keyboard = types.InlineKeyboardMarkup()
+    calendar_keyboard.add(types.InlineKeyboardButton(text='jk', callback_data=date_cb.new(action='back', date=-1)))
+    msg = get_schedule(9)
+    for c in range(5):
+        await bot.send_message(query.from_user.id, text=msg)
+    await bot.send_message(query.from_user.id, text='Назад к календарю', reply_markup=calendar_keyboard)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
