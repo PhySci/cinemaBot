@@ -1,12 +1,17 @@
 from cfg import API_KEY
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
+from aiogram import Bot, Dispatcher, executor
 from aiogram.utils.callback_data import CallbackData
 import logging
 from pprint import pprint
 from datetime import datetime, timedelta
 
 import locale
-locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+try:
+    locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+except:
+    locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
+
 
 bot = Bot(token=API_KEY)
 dp = Dispatcher(bot)
@@ -34,24 +39,24 @@ def get_schedule(date: datetime):
     return res
 
 @dp.message_handler(commands=["start"])
-async def show_calendar(message: types.Message):
+async def show_calendar(message: Message):
     """
     Shows calendar
 
     :param message:
     :return:
     """
-    calendar_keyboard = types.InlineKeyboardMarkup()
+    calendar_keyboard = InlineKeyboardMarkup()
 
     dates = get_dates()
     for date in dates:
         callback_data = date_cb.new(action='show_date', date=date[0])
-        calendar_keyboard.add(types.InlineKeyboardButton(text=date[1], callback_data=callback_data))
+        calendar_keyboard.add(InlineKeyboardButton(text=date[1], callback_data=callback_data))
     await message.answer('Когда вы хотели бы сходить в кино? Выберите дату.', reply_markup=calendar_keyboard)
 
 
 @dp.callback_query_handler(date_cb.filter(action='show_date'))
-async def show_date_handler(query: types.CallbackQuery):
+async def show_date_handler(query: CallbackQuery):
     """
     Shows schedule for one day
 
@@ -59,8 +64,8 @@ async def show_date_handler(query: types.CallbackQuery):
     :return:
     """
     pprint(query)
-    calendar_keyboard = types.InlineKeyboardMarkup()
-    calendar_keyboard.add(types.InlineKeyboardButton(text='jk', callback_data=date_cb.new(action='back', date=-1)))
+    calendar_keyboard = InlineKeyboardMarkup()
+    calendar_keyboard.add(InlineKeyboardButton(text='jk', callback_data=date_cb.new(action='back', date=-1)))
     msg = get_schedule(9)
     for c in range(5):
         await bot.send_message(query.from_user.id, text=msg)
