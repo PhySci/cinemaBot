@@ -5,9 +5,10 @@ from aiogram import Bot, Dispatcher, executor
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
 from aiogram.utils.callback_data import CallbackData
 
-from movies import get_movie_info, get_all_movies, get_schedule
+from movies import get_all_movies
 from cfg import API_KEY
 from schedule import get_dates
+from db import get_schedule, get_movie_info
 
 import locale
 
@@ -102,8 +103,8 @@ async def show_one_day_schedule(query: CallbackQuery):
     keyboard = InlineKeyboardMarkup()
     schedule = get_schedule(date)
     for i, c in enumerate(schedule):
-        keyboard.add(InlineKeyboardButton(text=c[1],
-                                          callback_data=date_cb.new(action='show_movie_info', date=c[0])))
+        keyboard.add(InlineKeyboardButton(text=c.get('datetime') + ' ' + c.get('title'),
+                                          callback_data=date_cb.new(action='show_movie_info', date=c.get('movie_id'))))
     date = datetime.fromtimestamp(float(date))
     date_str = format_date(date)
     await bot.send_message(query.from_user.id, text='Расписание кинотеатра на {:s}'.format(date_str),
@@ -120,10 +121,11 @@ async def show_movie_info(query: CallbackQuery):
     """
     _, _, movie_id = parse_callback(query)
     movie_info = get_movie_info(movie_id)
+    s = ' '.join(movie_info)
 
     keyboard = InlineKeyboardMarkup()
     await bot.send_message(query.from_user.id,
-                           text=movie_info,
+                           text=s,
                            reply_markup=keyboard)
 
 
