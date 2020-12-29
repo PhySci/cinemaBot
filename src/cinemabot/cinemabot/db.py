@@ -8,7 +8,8 @@ conn = sqlite3.connect(os.path.join(pth, 'db', 'cinema.db'),
                        detect_types=sqlite3.PARSE_DECLTYPES)
 
 
-
+def get_all_movies():
+    pass
 
 
 def get_schedule(date):

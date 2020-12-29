@@ -6,7 +6,6 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.markdown import text, italic, pre, bold
 
-from movies import get_all_movies
 from cfg import API_KEY
 from schedule import get_dates
 from db import get_schedule, get_movie_info
@@ -53,10 +52,12 @@ async def show_start(message: Message):
     start_keyboard.add(InlineKeyboardButton(text='Показать календарь',
                                             callback_data=date_cb.new(action='show_calendar', date='0')))
 
-    start_keyboard.add(InlineKeyboardButton(text='Показать все фильмы',
-                                            callback_data=date_cb.new(action='show_all', date='0')))
+    #start_keyboard.add(InlineKeyboardButton(text='Показать все фильмы',
+    #                                        callback_data=date_cb.new(action='show_all', date='0')))
 
-    await message.answer('Когда вы хотели бы сходить в кино? Выберите дату.', reply_markup=start_keyboard)
+    await message.answer("Привет! \n Я телеграм-бот кинотеатра 'Два луча' и я могу помочь тебе выбрать подходящий сеанс."
+                         "Нажми кнопку 'Показать календарь', чтобы выбрать подходящую дату похода в кино.",
+                         reply_markup=start_keyboard)
 
 
 @dp.callback_query_handler(date_cb.filter(action='show_calendar'))
