@@ -1,65 +1,35 @@
 import sqlite3
 import os
+from datetime import datetime
 
 pth = os.path.dirname(__file__)
 
-conn = sqlite3.connect(os.path.join(pth, 'db', 'cinema.db'))
-
-def create_db():
-    c = conn.cursor()
-    try:
-        #c.execute('''CREATE TABLE movies (title, description)''')
-        c.execute('''CREATE TABLE schedule (datetime, movie_id)''')
-        conn.commit()
-    except Exception as err:
-        print(repr(err))
-    finally:
-       c.close()
-
-def insert_movies(title, description):
-    sql = ''' INSERT INTO movies (title, description) VALUES (?, ?) '''
-    cur = conn.cursor()
-    cur.execute(sql, (title, description))
-    conn.commit()
-    return cur.lastrowid
+conn = sqlite3.connect(os.path.join(pth, 'db', 'cinema.db'),
+                       detect_types=sqlite3.PARSE_DECLTYPES)
 
 
-def add_movies():
-    movies = [('Первый', 'Описание'),
-              ('Второй', 'Описание'),
-              ('Третий', 'Описание')]
 
-    for c in movies:
-        c = insert_movies(c[0], c[1])
-        print(c)
 
-def insert_show(datetime, movie_id):
-    sql = ''' INSERT INTO schedule (datetime, movie_id) VALUES (?, ?) '''
-    cur = conn.cursor()
-    cur.execute(sql, (datetime, movie_id))
-    conn.commit()
-    return cur.lastrowid
-
-def add_schedules():
-    shows = [('2020-12-30 10:00', 1),
-             ('2020-12-30 12:00', 2),
-             ('2020-12-30 14:00', 3),
-             ('2020-12-31 14:00', 3),
-             ('2020-12-31 16:00', 5)
-             ]
-
-    for show in shows:
-        print(insert_show(show[0], show[1]))
 
 def get_schedule(date):
+    """
+
+    :param date:
+    :return:
+    """
+
     sql = '''
-            SELECT schedule.ROWID, schedule.datetime, movies.title, movies.description, movies.ROWID
+            SELECT schedule.ROWID, schedule.datetime, movies.title, movies.description, movies.ROWID 
             FROM schedule
             LEFT JOIN movies
-            ON schedule.movie_id = movies.ROWID  
+            ON schedule.movie_id = movies.ROWID
+            WHERE DATE(schedule.datetime) = (?)
+            ORDER BY TIME(schedule.datetime)
           '''
+
     cur = conn.cursor()
-    cur.execute(sql)
+    cur.execute(sql, (datetime.strftime(date, '%Y-%m-%d'), ))
+
     res = cur.fetchall()
     movies = list()
     for r in res:
@@ -71,7 +41,13 @@ def get_schedule(date):
     print(movies)
     return movies
 
+
 def get_movie_info(movie_id=1):
+    """
+
+    :param movie_id:
+    :return:
+    """
     sql = '''
           SELECT movies.title, movies.description
           FROM movies
@@ -79,13 +55,7 @@ def get_movie_info(movie_id=1):
           '''
     cur = conn.cursor()
     cur.execute(sql, (str(movie_id)))
-    res = cur.fetchone()
-    print(res)
-    return res
+    return cur.fetchone()
 
-
-#create_db()
-#add_movies()
-#add_schedules()
-get_movie_info()
+#get_movie_info()
 

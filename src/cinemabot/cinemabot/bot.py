@@ -2,8 +2,9 @@ import logging
 from datetime import datetime
 
 from aiogram import Bot, Dispatcher, executor
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message, ParseMode
 from aiogram.utils.callback_data import CallbackData
+from aiogram.utils.markdown import text, italic, pre, bold
 
 from movies import get_all_movies
 from cfg import API_KEY
@@ -11,6 +12,9 @@ from schedule import get_dates
 from db import get_schedule, get_movie_info
 
 import locale
+
+from init_sqlite import main as init_db
+
 
 try:
     locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
@@ -60,7 +64,7 @@ async def show_calendar(query: CallbackQuery):
     """
     Shows calendar
 
-    :param message:
+    :param query:
     :return:
     """
     calendar_keyboard = InlineKeyboardMarkup()
@@ -99,13 +103,14 @@ async def show_one_day_schedule(query: CallbackQuery):
     :return:
     """
     _, _, date = parse_callback(query)
-    print(date)
-    keyboard = InlineKeyboardMarkup()
-    schedule = get_schedule(date)
-    for i, c in enumerate(schedule):
-        keyboard.add(InlineKeyboardButton(text=c.get('datetime') + ' ' + c.get('title'),
-                                          callback_data=date_cb.new(action='show_movie_info', date=c.get('movie_id'))))
+    # @TODO: need to validate date here
     date = datetime.fromtimestamp(float(date))
+    schedule = get_schedule(date)
+
+    keyboard = InlineKeyboardMarkup()
+    for i, c in enumerate(schedule):
+        keyboard.add(InlineKeyboardButton(text=c.get('datetime').strftime("%H:%M") + ' -> ' + c.get('title'),
+                                          callback_data=date_cb.new(action='show_movie_info', date=c.get('movie_id'))))
     date_str = format_date(date)
     await bot.send_message(query.from_user.id, text='Расписание кинотеатра на {:s}'.format(date_str),
                            reply_markup=keyboard)
@@ -121,14 +126,20 @@ async def show_movie_info(query: CallbackQuery):
     """
     _, _, movie_id = parse_callback(query)
     movie_info = get_movie_info(movie_id)
-    s = ' '.join(movie_info)
+
+    s = text(bold(movie_info[0]),
+             '\n ---------- \n',
+
+             movie_info[1])
 
     keyboard = InlineKeyboardMarkup()
     await bot.send_message(query.from_user.id,
                            text=s,
-                           reply_markup=keyboard)
+                           reply_markup=keyboard,
+                           parse_mode=ParseMode.MARKDOWN)
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
+    init_db()
     executor.start_polling(dp, skip_updates=True)
