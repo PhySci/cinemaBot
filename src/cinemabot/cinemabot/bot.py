@@ -6,19 +6,21 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.markdown import text, italic, pre, bold
 
-from cfg import API_KEY
 from schedule import get_dates
-from db import get_schedule, get_movie_info
+from db import SQLiteDriver as DBdriver
+from init_sqlite import main as init_db
+from utils import get_api
 
 import locale
 
-from init_sqlite import main as init_db
 
 
 try:
     locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 except:
     locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
+
+API_KEY = get_api()
 
 bot = Bot(token=API_KEY)
 dp = Dispatcher(bot)
@@ -106,7 +108,8 @@ async def show_one_day_schedule(query: CallbackQuery):
     _, _, date = parse_callback(query)
     # @TODO: need to validate date here
     date = datetime.fromtimestamp(float(date))
-    schedule = get_schedule(date)
+    db = DBdriver()
+    schedule = db.get_schedule(date)
 
     keyboard = InlineKeyboardMarkup()
     for i, c in enumerate(schedule):
@@ -126,7 +129,8 @@ async def show_movie_info(query: CallbackQuery):
     :return:
     """
     _, _, movie_id = parse_callback(query)
-    movie_info = get_movie_info(movie_id)
+    db = DBdriver()
+    movie_info = db.get_movie_info(movie_id)
 
     s = text(bold(movie_info[0]),
              '\n ---------- \n',
