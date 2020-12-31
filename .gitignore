@@ -1,0 +1,7 @@
+/src/cinemabot/cinemabot/config.yml
+/env
+/.idea
+*.pyc
+/src/cinemabot/CinemaBot.egg-info
+/src/cinemabot/dist/CinemaBot-0.1.0.tar.gz
+/scripts/*.exe
