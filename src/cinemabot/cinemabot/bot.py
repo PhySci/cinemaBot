@@ -14,7 +14,6 @@ from utils import get_api
 import locale
 
 
-
 try:
     locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 except:
@@ -134,8 +133,8 @@ async def show_movie_info(query: CallbackQuery):
 
     s = text(bold(movie_info[0]),
              '\n ---------- \n',
-
-             movie_info[1])
+             movie_info[1]
+             )
 
     keyboard = InlineKeyboardMarkup()
     await bot.send_message(query.from_user.id,
