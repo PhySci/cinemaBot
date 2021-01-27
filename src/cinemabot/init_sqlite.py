@@ -1,8 +1,6 @@
-from datetime import datetime
-from pprint import pprint
-from utils import read_yml
+from src.cinemabot.utils import read_yml
 
-from db import SQLiteDriver as DBdriver
+from src.cinemabot.db import SQLiteDriver as DBdriver
 
 
 def main():

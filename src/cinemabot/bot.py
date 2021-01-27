@@ -4,12 +4,12 @@ from datetime import datetime
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message, ParseMode
 from aiogram.utils.callback_data import CallbackData
-from aiogram.utils.markdown import text, italic, pre, bold
+from aiogram.utils.markdown import text, bold
 
-from schedule import get_dates
-from db import SQLiteDriver as DBdriver
-from init_sqlite import main as init_db
-from utils import get_api
+from src.cinemabot.schedule import get_dates
+from src.cinemabot.db import SQLiteDriver as DBdriver
+from src.cinemabot.init_sqlite import main as init_db
+from src.cinemabot.utils import get_api
 
 import locale
 

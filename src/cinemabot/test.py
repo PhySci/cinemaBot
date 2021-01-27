@@ -1,6 +1,6 @@
 import logging
-from init_sqlite import main as init_db
-from db import get_schedule
+from src.cinemabot.init_sqlite import main as init_db
+from src.cinemabot.db import get_schedule
 
 logging.basicConfig(level=logging.DEBUG)
 
