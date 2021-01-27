@@ -1,1 +1,1 @@
-web: python src.cinemabot.bot.py
+web: ado start
