@@ -1,4 +1,6 @@
-''' Run a function by ado <func_name> '''
+'''
+Run a function by ado <func_name>
+'''
 
 
 def set_hook():
@@ -20,5 +22,5 @@ def set_hook():
 
 
 def start():
-    from bot.bot import main
+    from src.cinemabot.bot import main
     main()

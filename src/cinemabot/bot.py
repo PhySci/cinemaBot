@@ -19,10 +19,17 @@ try:
 except:
     locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
-API_KEY = get_api()
+from aiogram import Bot, types
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
+from aiogram.dispatcher import Dispatcher
+from aiogram.utils.executor import start_webhook
+from bot.settings import (BOT_TOKEN, HEROKU_APP_NAME,
+                          WEBHOOK_URL, WEBHOOK_PATH,
+                          WEBAPP_HOST, WEBAPP_PORT)
 
-bot = Bot(token=API_KEY)
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
+dp.middleware.setup(LoggingMiddleware())
 
 date_cb = CallbackData('date_cb', 'action', 'date')
 
@@ -143,7 +150,23 @@ async def show_movie_info(query: CallbackQuery):
                            parse_mode=ParseMode.MARKDOWN)
 
 
-if __name__ == "__main__":
+async def on_startup(dp):
+    logging.warning(
+        'Starting connection. ')
+    await bot.set_webhook(WEBHOOK_URL,drop_pending_updates=True)
+
+
+async def on_shutdown(dp):
+    logging.warning('Bye! Shutting down webhook connection')
+    bot.close()
+
+
+def main():
     logging.basicConfig(level=logging.DEBUG)
     init_db()
-    executor.start_polling(dp, skip_updates=True)
+    start_webhook(dispatcher=dp, webhook_path=WEBHOOK_PATH, skip_updates=True, on_startup=on_startup,
+                  host=WEBAPP_HOST, port=WEBAPP_PORT)
+
+
+if __name__ == '__main__':
+    main()
