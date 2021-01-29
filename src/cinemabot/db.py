@@ -4,6 +4,12 @@ from datetime import datetime
 
 pth = os.path.dirname(__file__)
 
+import os
+import psycopg2
+
+DATABASE_URL = os.environ['DATABASE_URL']
+
+#conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
 class SQLiteDriver:
 
@@ -16,8 +22,11 @@ class SQLiteDriver:
 
         :return:
         """
-        return sqlite3.connect(os.path.join(pth, 'db', 'cinema.db'),
-                               detect_types=sqlite3.PARSE_DECLTYPES)
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        return conn
+
+        # return sqlite3.connect(os.path.join(pth, 'db', 'cinema.db'),
+        #                        detect_types=sqlite3.PARSE_DECLTYPES)
 
     def get_all_movies(self):
         pass
