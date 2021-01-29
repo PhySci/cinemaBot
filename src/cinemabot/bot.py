@@ -9,7 +9,7 @@ from aiogram.utils.markdown import text, bold
 from src.cinemabot.schedule import get_dates
 from src.cinemabot.db import SQLiteDriver as DBdriver
 from src.cinemabot.init_sqlite import main as init_db
-from src.cinemabot.utils import get_api
+from src.cinemabot.utils import get_api, setup_logging
 
 import locale
 
@@ -162,7 +162,7 @@ async def on_shutdown(dp):
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    setup_logging()
     init_db()
     start_webhook(dispatcher=dp, webhook_path=WEBHOOK_PATH, skip_updates=True, on_startup=on_startup,
                   host=WEBAPP_HOST, port=WEBAPP_PORT)
