@@ -193,7 +193,7 @@ class PostgresDriver:
               '''
         cur = self._connection.cursor()
 
-        cur.execute(sql, (date.date()) )
+        cur.execute(sql, (datetime.strptime(date.date(), '%Y-%m-%d'), ))
         res = cur.fetchall()
 
         movies = list()
