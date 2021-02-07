@@ -1,10 +1,10 @@
 from src.cinemabot.utils import read_yml
-
-from src.cinemabot.db import SQLiteDriver as DBdriver
+from src.cinemabot.db import PostgresDriver as DBdriver
 
 
 def main():
-
+    """
+    """
     db = DBdriver()
     db.create_db()
     schedule = read_yml()
@@ -15,5 +15,4 @@ def main():
 
 
 if __name__ == '__main__':
-
     main()
