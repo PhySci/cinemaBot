@@ -157,7 +157,7 @@ class PostgresDriver:
             cls.instance = super(PostgresDriver, cls).__new__(cls)
         return cls.instance
 
-    def __init__(self, host=None, user=None, password=None, dbname=None, sslmode=None):
+    def __init__(self, host=None, user=None, password=None, dbname=None, sslmode='required'):
         self._db_params = {}
 
         if host is None:
