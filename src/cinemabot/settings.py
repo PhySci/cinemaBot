@@ -9,6 +9,8 @@ def read_config():
     settings = {}
     pth = os.path.join(os.path.dirname(__file__), 'config.yml')
     print(pth)
+    if not os.path.exists(pth):
+        return settings
     with open(pth) as fid:
         try:
             settings = yaml.load(fid, Loader=yaml.SafeLoader)
