@@ -2,9 +2,10 @@ import os
 import psycopg2
 import sqlite3
 from datetime import datetime
+import logging
 
 pth = os.path.dirname(__file__)
-
+_logger = logging.getLogger(__name__)
 
 try:
     DATABASE_URL = os.environ['DATABASE_URL']
@@ -23,11 +24,9 @@ class SQLiteDriver:
 
         :return:
         """
-        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-        return conn
 
-        # return sqlite3.connect(os.path.join(pth, 'db', 'cinema.db'),
-        #                        detect_types=sqlite3.PARSE_DECLTYPES)
+        return sqlite3.connect(os.path.join(pth, 'db', 'cinema.db'),
+                                detect_types=sqlite3.PARSE_DECLTYPES)
 
     def get_all_movies(self):
         pass
@@ -149,40 +148,56 @@ class SQLiteDriver:
         return cur.lastrowid
 
 
+
+
 class PostgresDriver:
 
-    def __init__(self):
-        self.db_url = os.environ['DATABASE_URL']
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(PostgresDriver, cls).__new__(cls)
+        return cls.instance
+
+    def __init__(self, host=None, user=None, password=None, dbname=None, sslmode=None):
+        self._db_params = {}
+
+        if host is None:
+            host = os.getenv('DATABASE_URL')
+
+        self._add_connection_param('host', host)
+        self._add_connection_param('user', user)
+        self._add_connection_param('password', password)
+        self._add_connection_param('dbname', dbname)
+        self._add_connection_param('sslmode', sslmode)
         self._set_connection()
 
-    def __del__(self):
-        self._connection.close()
+    def _add_connection_param(self, name, value):
+        if value is not None:
+            self._db_params.update({name: value})
 
-    def _set_connection(self) -> sqlite3.connect:
+    def _set_connection(self):
         """
         Return connect instance
 
         :return:
         """
-        #conn = psycopg2.connect(host="localhost",
-        #                        user="postgres",
-        #                        password="example",
-        #                        dbname="test"
-                                #  sslmode='require'
-        #                       )
-        DATABASE_URL = os.environ['DATABASE_URL']
-        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        conn = psycopg2.connect(**self._db_params)
+        #DATABASE_URL = self.db_url
+        #conn = psycopg2.connect(host=DATABASE_URL, user="postgres") #, sslmode='require'
         self._connection = conn
+
+    def _close_connection(self):
+        self._connection.close()
 
     def get_all_movies(self):
         pass
 
-    def get_schedule(self, date):
+    def get_schedule(self, date: datetime):
         """
 
         :param date:
         :return:
         """
+
         sql = '''
                 SELECT schedule.id, schedule.datetime, movies.title, movies.description, movies.id
                 FROM schedule
@@ -193,8 +208,12 @@ class PostgresDriver:
               '''
         cur = self._connection.cursor()
 
-        cur.execute(sql, (datetime.strptime(date.date(), '%Y-%m-%d'), ))
+        t = date.date()
+
+        self._set_connection()
+        cur.execute(sql, (t, ))
         res = cur.fetchall()
+        self._close_connection()
 
         movies = list()
         for r in res:
@@ -216,8 +235,10 @@ class PostgresDriver:
               FROM movies
               WHERE movies.id = %s    
               '''
+        self._set_connection()
         conn = self._connection
         cur = conn.cursor()
+        self._close_connection()
         cur.execute(sql, (str(movie_id)))
         return cur.fetchone()
 
@@ -226,6 +247,7 @@ class PostgresDriver:
 
         :return:
         """
+        self._set_connection()
         conn = self._connection
         c = conn.cursor()
         c.execute("DROP TABLE IF EXISTS movies")
@@ -240,6 +262,7 @@ class PostgresDriver:
                                 datetime timestamp,
                                 movie_id INTEGER )''')
         conn.commit()
+        self._close_connection()
 
     def insert_movie(self, title, description):
         """
@@ -249,11 +272,12 @@ class PostgresDriver:
         :return:
         """
         sql = "INSERT INTO movies (title, description) VALUES (%s, %s) RETURNING id"
+        self._set_connection()
         cur = self._connection.cursor()
         t = cur.execute(sql, (title, description))
         self._connection.commit()
-
         res = cur.fetchone()[0]
+        self._close_connection()
         return res
 
     def insert_show(self, movie_id: int, show_time: str):
@@ -264,12 +288,13 @@ class PostgresDriver:
         :return:
         """
         sql = ''' INSERT INTO schedule (movie_id, datetime) VALUES (%s, %s) '''
-        cur = self._connection.cursor()
-
         t = datetime.strptime(show_time, "%Y-%m-%d %H:%M:%S")
+
+        self._set_connection()
+        cur = self._connection.cursor()
         cur.execute(sql, (movie_id, t))
         self._connection.commit()
-
+        self._close_connection()
         return cur.lastrowid
 
 

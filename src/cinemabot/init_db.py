@@ -12,7 +12,3 @@ def main():
         movie_id = db.insert_movie(rec.get('title'), rec.get('description'))
         for t in rec.get('time'):
             db.insert_show(movie_id, t)
-
-
-if __name__ == '__main__':
-    main()

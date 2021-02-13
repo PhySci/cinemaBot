@@ -18,17 +18,25 @@ try:
 except:
     locale.setlocale(locale.LC_ALL, 'ru_RU.UTF-8')
 
-from aiogram import Bot, types
+from aiogram import Bot, types, executor
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils.executor import start_webhook
-from bot.settings import (BOT_TOKEN, HEROKU_APP_NAME,
-                          WEBHOOK_URL, WEBHOOK_PATH,
-                          WEBAPP_HOST, WEBAPP_PORT)
 
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(bot)
-dp.middleware.setup(LoggingMiddleware())
+_logger = logging.getLogger(__name__)
+
+
+def init_bot():
+    """
+    """
+    from src.cinemabot.settings import BOT_TOKEN
+    bot = Bot(token=BOT_TOKEN)
+    dp = Dispatcher(bot)
+    dp.middleware.setup(LoggingMiddleware())
+    return bot, dp
+
+
+bot, dp = init_bot()
 
 date_cb = CallbackData('date_cb', 'action', 'date')
 
@@ -112,7 +120,11 @@ async def show_one_day_schedule(query: CallbackQuery):
     """
     _, _, date = parse_callback(query)
     # @TODO: need to validate date here
-    date = datetime.fromtimestamp(float(date))
+    try:
+        date = datetime.fromtimestamp(float(date))
+    except:
+
+        return None
     db = DBdriver()
     schedule = db.get_schedule(date)
 
@@ -148,23 +160,29 @@ async def show_movie_info(query: CallbackQuery):
                            reply_markup=keyboard,
                            parse_mode=ParseMode.MARKDOWN)
 
-
 async def on_startup(dp):
-    logging.warning(
-        'Starting connection. ')
-    await bot.set_webhook(WEBHOOK_URL,drop_pending_updates=True)
+    _logger.warning('Starting connection. ')
+    from src.cinemabot.settings import WEBHOOK_URL
+    await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
 
 
 async def on_shutdown(dp):
-    logging.warning('Bye! Shutting down webhook connection')
+    _logger.warning('Bye! Shutting down webhook connection')
     bot.close()
 
 
 def main():
     setup_logging()
     init_db()
-    start_webhook(dispatcher=dp, webhook_path=WEBHOOK_PATH, skip_updates=True, on_startup=on_startup,
-                  host=WEBAPP_HOST, port=WEBAPP_PORT)
+
+    local_run = False
+
+    if local_run:
+        executor.start_polling(dp, skip_updates=True)
+    else:
+        from src.cinemabot.settings import WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT
+        start_webhook(dispatcher=dp, webhook_path=WEBHOOK_PATH, skip_updates=True,
+                      on_startup=on_startup, host=WEBAPP_HOST, port=WEBAPP_PORT)
 
 
 if __name__ == '__main__':
