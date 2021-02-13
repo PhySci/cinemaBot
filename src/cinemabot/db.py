@@ -235,9 +235,10 @@ class PostgresDriver:
         self._set_connection()
         conn = self._connection
         cur = conn.cursor()
-        self._close_connection()
         cur.execute(sql, (str(movie_id)))
-        return cur.fetchone()
+        res = cur.fetchone()
+        self._close_connection()
+        return res
 
     def create_db(self):
         """
