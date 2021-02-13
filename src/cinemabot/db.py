@@ -152,11 +152,6 @@ class SQLiteDriver:
 
 class PostgresDriver:
 
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(PostgresDriver, cls).__new__(cls)
-        return cls.instance
-
     def __init__(self, host=None, user=None, password=None, dbname=None, sslmode='require'):
         self._db_params = {}
 
@@ -180,7 +175,9 @@ class PostgresDriver:
 
         :return:
         """
-        conn = psycopg2.connect(**self._db_params)
+
+        DATABASE_URL = os.environ['DATABASE_URL']
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
         #DATABASE_URL = self.db_url
         #conn = psycopg2.connect(host=DATABASE_URL, user="postgres") #, sslmode='require'
         self._connection = conn
