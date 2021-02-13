@@ -27,7 +27,7 @@ def get_param(settings, config_name, env_name, cast_type=None):
 
     if (cast_type is not None) and (token is not None):
         token = cast_type(token)
-
+    _logger.debug('Variable %s, value %s', config_name, str(token))
     return token
 
 
