@@ -13,7 +13,7 @@ def read_config():
         try:
             settings = yaml.load(fid, Loader=yaml.SafeLoader)
         except Exception as err:
-            _logger.warning(repr(err))
+            _logger.debug(repr(err))
     return settings
 
 
