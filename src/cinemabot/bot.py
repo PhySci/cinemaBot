@@ -180,7 +180,12 @@ def main():
     if local_run:
         executor.start_polling(dp, skip_updates=True)
     else:
+        print('Non local run')
         from src.cinemabot.settings import WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT
+        print(WEBHOOK_URL)
+        print(WEBHOOK_PATH)
+        print(WEBAPP_HOST)
+        print(WEBAPP_PORT)
         start_webhook(dispatcher=dp, webhook_path=WEBHOOK_PATH, skip_updates=True,
                       on_startup=on_startup, host=WEBAPP_HOST, port=WEBAPP_PORT)
 
