@@ -3,6 +3,7 @@ import psycopg2
 import sqlite3
 from datetime import datetime
 import logging
+import json
 
 pth = os.path.dirname(__file__)
 _logger = logging.getLogger(__name__)
@@ -146,8 +147,6 @@ class SQLiteDriver:
             cur.execute(sql, (movie_id, t))
 
         return cur.lastrowid
-
-
 
 
 class PostgresDriver:
@@ -306,3 +305,83 @@ def get_driver(db_type='Postgres'):
         return SQLiteDriver()
     elif db_type == 'Postgres':
         return PostgresDriver()
+
+
+from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, func, create_engine
+from sqlalchemy.orm import relationship, backref, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+
+class Movie(Base):
+    __tablename__ = 'movie'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    description = Column(String, default="")
+    image = Column(String, default="")
+    content_rating = Column(String, default="")
+    duration = Column(String, default="")
+    date_created = Column(String, default="")
+    director = Column(String, default="")
+    genre = Column(String, default="")
+    actor = Column(String, default="")
+    show_time = relationship("ShowTime")
+
+
+class ShowTime(Base):
+    __tablename__ = 'show_time'
+    id = Column(Integer, primary_key=True)
+    date = Column(String)
+    price = Column(String)
+    movie_id = Column(Integer, ForeignKey("movie.id"))
+
+
+def update_db():
+
+    engine = create_engine("postgresql://postgres:example@localhost")
+    print(engine)
+    session = sessionmaker()
+    session.configure(bind=engine)
+    Base.metadata.create_all(engine)
+    sess = session()
+
+    with open("../parser/results.json", "r") as fid:
+        data = json.load(fid)
+
+    for movie in data:
+        insert_movie(movie, sess)
+
+
+def insert_movie(movie: dict, sess):
+    """
+    Insert information for one movie
+
+
+    :param movie:
+    :param sess:
+    :return:
+    """
+    movie_fields = {"name": "name",
+                    "image": "image",
+                    "contentRating":  "content_rating",
+                    "duration": "duration",
+                    "dateCreated": "date_created",
+                    "director": "director",
+                    "description": "description",
+                    "genre": "genre"}
+
+    movie_params = {v: movie.get(k) for k, v in movie_fields.items()}
+    m = Movie(**movie_params)
+    for show_time in movie.get("show_time", []):
+        st = ShowTime(date=show_time[0], price=show_time[1])
+        m.show_time.append(st)
+        sess.add(st)
+    sess.add(m)
+    sess.commit()
+
+
+if __name__ == "__main__":
+    update_db()
+
+

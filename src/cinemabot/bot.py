@@ -5,10 +5,10 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.markdown import text, bold
 
-from src.cinemabot.schedule import get_dates
-from src.cinemabot.db import PostgresDriver as DBdriver
-from src.cinemabot.init_db import main as init_db
-from src.cinemabot.utils import setup_logging
+from cinemabot.schedule import get_dates
+from cinemabot.db import PostgresDriver as DBdriver
+from cinemabot.init_db import main as init_db
+from cinemabot.utils import setup_logging
 
 import locale
 

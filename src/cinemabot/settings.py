@@ -6,8 +6,13 @@ _logger = logging.getLogger(__name__)
 
 
 def read_config():
+    """
+    Reads and returns content of config file
+
+    :return:
+    """
     settings = {}
-    pth = os.path.join(os.path.dirname(__file__), 'config.yml')
+    pth = os.path.join(os.path.dirname(__file__), 'configs', 'config.yml')
     print(pth)
     if not os.path.exists(pth):
         return settings
@@ -20,7 +25,15 @@ def read_config():
 
 
 def get_param(settings, config_name, env_name, cast_type=None):
+    """
+    Return value of the given parameter from environment variables or config file
 
+    :param settings: dictionary of settings
+    :param config_name: name of the variable in the settings' dictionary
+    :param env_name: name of corresponding environment variable
+    :param cast_type: Python type to cast the value
+    :return:
+    """
     token = os.getenv(env_name)
     if token is None:
         token = settings.get(config_name)

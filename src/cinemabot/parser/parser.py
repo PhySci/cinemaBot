@@ -2,9 +2,7 @@ from bs4 import BeautifulSoup
 from dataclasses import dataclass, field
 import re
 from requests import get as get_url
-from typing import List
 import json
-from pickle import dump
 
 ROOT_URL = "https://kinochg.ru"
 
@@ -76,6 +74,7 @@ class ShowInfo:
     def to_dict(self):
         return (self.time +' '+ self.date, self.price)
 
+
 def main():
 
     r = get_url(ROOT_URL)
@@ -84,10 +83,14 @@ def main():
         return None
 
     info = parse_main_page(r.content)
+    info = convert(info)
 
-    with open('info.pkl', 'wb') as fid:
-        dump(info, fid)
+    with open('results.json', 'w') as fid:
+        json.dump(info, fid)
 
+    with open('results.json', 'r') as fid:
+        l = json.load(fid)
+    print(l)
 
 
 def parse_main_page(html: str):
@@ -96,6 +99,7 @@ def parse_main_page(html: str):
     day_tabs = tree.find_all("a", class_="day-tab")
     for day_tab in day_tabs:
         link = ROOT_URL + day_tab.attrs["href"]
+        print(link)
         date, _, _ = parse_url(link)
         r = get_url(link)
         if r.status_code != 200:
@@ -192,6 +196,41 @@ def get_movie_showtime(div):
         show_info = ShowInfo(show_time, show_price)
         movie_shows.append(show_info)
     return movie_shows
+
+
+def flatten_list(l: list) -> list:
+    """
+
+    :param l:
+    :return:
+    """
+    flat_list = []
+    for l2 in l:
+        for el in l2:
+            flat_list.append(el)
+    return flat_list
+
+
+def convert(data) -> dict:
+    """
+
+    :param data:
+    :return:
+    """
+    res = {}
+    for movie in flatten_list(data):
+        show_info: Movie = movie[0]
+        show_info.show_time = movie[1]
+
+        hash = show_info.hash
+
+        if hash not in res.keys():
+            res.update({hash: show_info})
+        else:
+            t = res[hash]
+            new = t + show_info
+            res[hash] = new
+    return [v.to_dict(return_lists=False) for _, v in res.items()]
 
 
 if __name__ == '__main__':
