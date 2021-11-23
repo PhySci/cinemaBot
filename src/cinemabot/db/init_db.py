@@ -1,5 +1,5 @@
-from src.cinemabot.utils import read_yml
-from src.cinemabot.db import PostgresDriver as DBdriver
+from utils import read_yml
+from db.db import PostgresDriver as DBdriver
 
 
 def main():

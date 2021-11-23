@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 import re
 from requests import get as get_url
 import json
+from datetime import datetime
 
 ROOT_URL = "https://kinochg.ru"
 
@@ -72,6 +73,7 @@ class ShowInfo:
     date: str = field(default='')
 
     def to_dict(self):
+
         return (self.time +' '+ self.date, self.price)
 
 

@@ -5,10 +5,9 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.markdown import text, bold
 
-from cinemabot.schedule import get_dates
-from cinemabot.db import PostgresDriver as DBdriver
-from cinemabot.init_db import main as init_db
-from cinemabot.utils import setup_logging
+from db.db import DBDriver
+from db.init_db import main as init_db
+from utils import setup_logging
 
 import locale
 
@@ -29,7 +28,7 @@ _logger = logging.getLogger(__name__)
 def init_bot():
     """
     """
-    from src.cinemabot.settings import BOT_TOKEN
+    from settings import BOT_TOKEN
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(bot)
     dp.middleware.setup(LoggingMiddleware())
@@ -84,7 +83,8 @@ async def show_calendar(query: CallbackQuery):
     :return:
     """
     calendar_keyboard = InlineKeyboardMarkup()
-    for date in get_dates():
+    db = DBDriver()
+    for date in db.get_dates():
         calendar_keyboard.add(InlineKeyboardButton(text=format_date(date[1]),
                                                    callback_data=date_cb.new(action='show_date', date=date[2])))
     await bot.send_message(query.from_user.id,
@@ -123,9 +123,8 @@ async def show_one_day_schedule(query: CallbackQuery):
     try:
         date = datetime.fromtimestamp(float(date))
     except:
-
         return None
-    db = DBdriver()
+    db = DBDriver()
     schedule = db.get_schedule(date)
 
     keyboard = InlineKeyboardMarkup()
@@ -162,7 +161,7 @@ async def show_movie_info(query: CallbackQuery):
 
 async def on_startup(dp):
     _logger.warning('Starting connection. ')
-    from src.cinemabot.settings import WEBHOOK_URL
+    from settings import WEBHOOK_URL
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
 
 
@@ -173,15 +172,15 @@ async def on_shutdown(dp):
 
 def main():
     setup_logging()
-    init_db()
+    #init_db()
 
-    local_run = False
+    local_run = True
 
     if local_run:
         executor.start_polling(dp, skip_updates=True)
     else:
         print('Non local run')
-        from src.cinemabot.settings import WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT
+        from settings import WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT
         print(WEBHOOK_URL)
         print(WEBHOOK_PATH)
         print(WEBAPP_HOST)

@@ -1,7 +1,7 @@
 import os
 import psycopg2
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import json
 
@@ -307,7 +307,7 @@ def get_driver(db_type='Postgres'):
         return PostgresDriver()
 
 
-from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, func, create_engine
+from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, func, create_engine, distinct
 from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -332,53 +332,102 @@ class Movie(Base):
 class ShowTime(Base):
     __tablename__ = 'show_time'
     id = Column(Integer, primary_key=True)
-    date = Column(String)
+    date = Column(DateTime)
     price = Column(String)
     movie_id = Column(Integer, ForeignKey("movie.id"))
 
 
-def update_db():
+class DBDriver:
 
-    engine = create_engine("postgresql://postgres:example@localhost")
-    print(engine)
-    session = sessionmaker()
-    session.configure(bind=engine)
-    Base.metadata.create_all(engine)
-    sess = session()
-
-    with open("../parser/results.json", "r") as fid:
-        data = json.load(fid)
-
-    for movie in data:
-        insert_movie(movie, sess)
+    def __init__(self):
+        self._engine = create_engine("postgresql://postgres:example@localhost")
+        self._session = sessionmaker()
+        self._session.configure(bind=self._engine)
 
 
-def insert_movie(movie: dict, sess):
-    """
-    Insert information for one movie
+    def get_schedule(self, date):
+        """
+        Returns schedule for one day
+
+        :param date:
+        :return:
+        """
+        sess = self._session()
+        # All available dates
+        #
+        #print(t)
+        pass
+
+    def get_dates(self):
+        """
+        Return list of available dates
+
+        :return:
+        """
+        sess = self._session()
+        dates = []
+        t = sess.query(distinct(func.date_trunc('day', ShowTime.date)).label('days')).order_by('days').all()
+
+        for d in t:
+            row = d._asdict()
+            date = row.get("days")
+            ts = datetime.timestamp(date)
+            dates.append((None, date, ts))
+        return dates
+
+    def get_movie_info(self):
+        pass
 
 
-    :param movie:
-    :param sess:
-    :return:
-    """
-    movie_fields = {"name": "name",
-                    "image": "image",
-                    "contentRating":  "content_rating",
-                    "duration": "duration",
-                    "dateCreated": "date_created",
-                    "director": "director",
-                    "description": "description",
-                    "genre": "genre"}
 
-    movie_params = {v: movie.get(k) for k, v in movie_fields.items()}
-    m = Movie(**movie_params)
-    for show_time in movie.get("show_time", []):
-        st = ShowTime(date=show_time[0], price=show_time[1])
-        m.show_time.append(st)
-        sess.add(st)
-    sess.add(m)
-    sess.commit()
+    def update_db(self):
+
+        engine = create_engine("postgresql://postgres:example@localhost")
+        print(engine)
+        session = sessionmaker()
+        session.configure(bind=engine)
+        Base.metadata.create_all(engine)
+        sess = session()
+
+        with open("../parser/results.json", "r") as fid:
+            data = json.load(fid)
+
+        for movie in data:
+            self.insert_movie(movie, sess)
+
+
+    def insert_movie(movie: dict, sess):
+        """
+        Insert information for one movie
+
+
+        :param movie:
+        :param sess:
+        :return:
+        """
+        movie_fields = {"name": "name",
+                        "image": "image",
+                        "contentRating":  "content_rating",
+                        "duration": "duration",
+                        "dateCreated": "date_created",
+                        "director": "director",
+                        "description": "description",
+                        "genre": "genre"}
+
+        movie_params = {v: movie.get(k) for k, v in movie_fields.items()}
+        m = Movie(**movie_params)
+        for show_time in movie.get("show_time", []):
+            try:
+                dt = datetime.strptime(show_time[0], "%H:%M %Y/%m/%d")
+            except ValueError as err:
+                print(repr(err))
+                continue
+
+            st = ShowTime(date=dt, price=show_time[1])
+            m.show_time.append(st)
+            sess.add(st)
+        sess.add(m)
+        sess.commit()
 
 
 if __name__ == "__main__":
