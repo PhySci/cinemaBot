@@ -1,12 +1,12 @@
 from datetime import datetime
 import logging
-import json
 
 from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, func, create_engine, distinct
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from cinemabot.settings import DATABASE_URL
+
 Base = declarative_base()
 _logger = logging.getLogger(__name__)
 

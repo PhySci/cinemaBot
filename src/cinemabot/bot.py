@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.markdown import text, bold
 
-from db import DBDriver
+from cinemabot.db import DBDriver
 from utils import setup_logging
 from settings import LOCAL_DEV
 
