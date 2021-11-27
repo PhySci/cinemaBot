@@ -6,7 +6,7 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.markdown import text, bold
 
 from cinemabot.db import DBDriver
-from utils import setup_logging
+from cinemabot.utils import setup_logging
 from cinemabot.settings import LOCAL_DEV
 
 import locale
