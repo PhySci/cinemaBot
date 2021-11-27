@@ -3,8 +3,7 @@ from dataclasses import dataclass, field
 import re
 from requests import get as get_url
 from typing import Dict
-
-ROOT_URL = "https://kinochg.ru"
+from settings import ROOT_URL
 
 
 @dataclass
