@@ -173,7 +173,7 @@ async def show_movie_info(query: CallbackQuery):
 
 async def on_startup(dp):
     _logger.warning('Starting connection. ')
-    from settings import WEBHOOK_URL
+    from cinemabot.settings import WEBHOOK_URL
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
 
 
@@ -190,7 +190,7 @@ def main():
         executor.start_polling(dp, skip_updates=True)
     else:
         print('Non local run')
-        from settings import WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT
+        from cinemabot.settings import WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT
         print(WEBHOOK_URL)
         print(WEBHOOK_PATH)
         print(WEBAPP_HOST)
