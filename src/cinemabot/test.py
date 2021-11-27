@@ -1,13 +1,17 @@
 import logging
-from src.cinemabot.init_db import main as init_db
-from src.cinemabot.db import get_schedule
+from cinemabot.db.db import DBDriver
+from datetime import datetime
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 def main():
-    init_db()
-    t = '2020-12-31'
-    get_schedule(t)
+    driver = DBDriver()
+    t = datetime.today()
+
+    res = driver.get_schedule(t)
+    for r in res:
+        print(r.__dict__)
 
 if __name__ == '__main__':
     main()

@@ -2,8 +2,7 @@ from bs4 import BeautifulSoup
 from dataclasses import dataclass, field
 import re
 from requests import get as get_url
-import json
-from datetime import datetime
+from typing import Dict
 
 ROOT_URL = "https://kinochg.ru"
 
@@ -77,7 +76,7 @@ class ShowInfo:
         return (self.time +' '+ self.date, self.price)
 
 
-def main():
+def parse() -> Dict:
 
     r = get_url(ROOT_URL)
     if r.status_code != 200:
@@ -86,13 +85,7 @@ def main():
 
     info = parse_main_page(r.content)
     info = convert(info)
-
-    with open('results.json', 'w') as fid:
-        json.dump(info, fid)
-
-    with open('results.json', 'r') as fid:
-        l = json.load(fid)
-    print(l)
+    return info
 
 
 def parse_main_page(html: str):
@@ -140,6 +133,7 @@ def parse_url(url: str):
     if len(m.groups()) == 3:
         return m['date'], m['city'], m['facility']
     else:
+
         return '', '', ''
 
 

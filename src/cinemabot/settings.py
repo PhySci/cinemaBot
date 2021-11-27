@@ -37,8 +37,9 @@ def get_param(settings, config_name, env_name, cast_type=None):
     token = os.getenv(env_name)
     if token is None:
         token = settings.get(config_name)
+
     if token is None:
-        _logger.warning('You have forgot to set %s', config_name)
+        return None
 
     if (cast_type is not None) and (token is not None):
         token = cast_type(token)
@@ -59,6 +60,12 @@ WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 
 # webserver settings
 WEBAPP_HOST = '0.0.0.0'
-WEBAPP_PORT = get_param(settings, 'port', 'PORT') #   int(os.getenv('PORT'))
+WEBAPP_PORT = get_param(settings, 'port', 'PORT')
+
+# is local development?
+LOCAL_DEV = get_param({}, 'local_dev', 'LOCAL_DEVELOPMENT')
+
+
+
 
 

@@ -5,9 +5,9 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.markdown import text, bold
 
-from db.db import DBDriver
-from db.init_db import main as init_db
+from db import DBDriver
 from utils import setup_logging
+from settings import LOCAL_DEV
 
 import locale
 
@@ -62,7 +62,6 @@ async def show_start(message: Message):
     :return:
     """
     start_keyboard = InlineKeyboardMarkup()
-
     start_keyboard.add(InlineKeyboardButton(text='Показать календарь',
                                             callback_data=date_cb.new(action='show_calendar', date='0')))
 
@@ -125,14 +124,17 @@ async def show_one_day_schedule(query: CallbackQuery):
     except:
         return None
     db = DBDriver()
-    schedule = db.get_schedule(date)
+    shows = db.get_schedule(date)
 
     keyboard = InlineKeyboardMarkup()
-    for i, c in enumerate(schedule):
-        keyboard.add(InlineKeyboardButton(text=c.get('datetime').strftime("%H:%M") + ' -> ' + c.get('title'),
-                                          callback_data=date_cb.new(action='show_movie_info', date=c.get('movie_id'))))
+    for i, show in enumerate(shows):
+        item_text = show.get('datetime').strftime("%H:%M") + ' -> ' + show.get('title') + '  (' + show.get('genre') + ')'
+        callback = date_cb.new(action='show_movie_info', date=show.get('movie_id'))
+        keyboard.add(InlineKeyboardButton(text=item_text,
+                                          callback_data=callback))
     date_str = format_date(date)
-    await bot.send_message(query.from_user.id, text='Расписание кинотеатра на {:s}'.format(date_str),
+    await bot.send_message(query.from_user.id,
+                           text='Расписание кинотеатра на {:s}'.format(date_str),
                            reply_markup=keyboard)
 
 
@@ -145,19 +147,30 @@ async def show_movie_info(query: CallbackQuery):
     :return:
     """
     _, _, movie_id = parse_callback(query)
-    db = DBdriver()
+    db = DBDriver()
     movie_info = db.get_movie_info(movie_id)
 
-    s = text(bold(movie_info[0]),
-             '\n ---------- \n',
-             movie_info[1]
-             )
+    s = text(
+             bold(movie_info.get('name')),
+             '\n', '\n',
+             movie_info.get('description'),
+             '\n', '\n',
+             bold('Возрастная категория: '), movie_info.get('content_rating'), '\n',
+             bold('Продолжительность:'), movie_info.get('duration'), '\n',
+             bold('Год выпуска: '), movie_info.get('date_created'), '\n',
+             bold('Жанр: '), movie_info.get('genre'), '\n',
+             "["+movie_info.get('name')+"]("+movie_info.get('image')+" caption)"
+    )
 
-    keyboard = InlineKeyboardMarkup()
+    start_keyboard = InlineKeyboardMarkup()
+    start_keyboard.add(InlineKeyboardButton(text='Показать календарь',
+                                            callback_data=date_cb.new(action='show_calendar', date='0')))
+
     await bot.send_message(query.from_user.id,
                            text=s,
-                           reply_markup=keyboard,
+                           reply_markup=start_keyboard,
                            parse_mode=ParseMode.MARKDOWN)
+
 
 async def on_startup(dp):
     _logger.warning('Starting connection. ')
@@ -172,11 +185,9 @@ async def on_shutdown(dp):
 
 def main():
     setup_logging()
-    #init_db()
 
-    local_run = True
 
-    if local_run:
+    if LOCAL_DEV:
         executor.start_polling(dp, skip_updates=True)
     else:
         print('Non local run')
