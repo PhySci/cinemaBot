@@ -7,7 +7,7 @@ from aiogram.utils.markdown import text, bold
 
 from cinemabot.db import DBDriver
 from utils import setup_logging
-from settings import LOCAL_DEV
+from cinemabot.settings import LOCAL_DEV
 
 import locale
 

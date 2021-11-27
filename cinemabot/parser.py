@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 import re
 from requests import get as get_url
 from typing import Dict
-from settings import ROOT_URL
+from cinemabot.settings import ROOT_URL
 
 
 @dataclass
