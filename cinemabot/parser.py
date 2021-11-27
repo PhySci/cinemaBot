@@ -4,6 +4,9 @@ import re
 from requests import get as get_url
 from typing import Dict
 from cinemabot.settings import ROOT_URL
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -129,10 +132,12 @@ def parse_url(url: str):
     """
     pattern = "^https://[\w.]+/\?date=(?P<date>[\d/]+)&city=(?P<city>[\d]+)&facility=(?P<facility>[\d\w.-]+)"
     m = re.match(pattern, url)
+    if m is None:
+        _logger.warning("Can not parse page %s", url)
+        return '', '', ''
     if len(m.groups()) == 3:
         return m['date'], m['city'], m['facility']
     else:
-
         return '', '', ''
 
 
