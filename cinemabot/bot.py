@@ -7,7 +7,7 @@ from aiogram.utils.markdown import text, bold
 
 from cinemabot.db import DBDriver
 from cinemabot.utils import setup_logging
-from cinemabot.settings import LOCAL_DEV
+from cinemabot.settings import LOCAL_DEV, BOT_TOKEN
 
 import locale
 
@@ -28,7 +28,6 @@ _logger = logging.getLogger(__name__)
 def init_bot():
     """
     """
-    from settings import BOT_TOKEN
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher(bot)
     dp.middleware.setup(LoggingMiddleware())
