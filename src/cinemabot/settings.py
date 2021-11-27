@@ -63,6 +63,7 @@ WEBAPP_HOST = '0.0.0.0'
 WEBAPP_PORT = get_param(settings, "port", "PORT")
 
 ROOT_URL = get_param({}, 'root_url', "ROOT_URL")
+DATABASE_URL = get_param({}, "DATABASE_URL", "DATABASE_URL")
 
 # is local development?
 LOCAL_DEV = get_param({}, "local_dev", "LOCAL_DEVELOPMENT")

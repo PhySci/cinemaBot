@@ -6,6 +6,7 @@ from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, func, crea
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
+from cinemabot.settings import DATABASE_URL
 Base = declarative_base()
 _logger = logging.getLogger(__name__)
 
@@ -41,7 +42,8 @@ class ShowTime(Base):
 class DBDriver:
 
     def __init__(self):
-        self._engine = create_engine("postgresql://postgres:example@localhost")
+        self._db_url = DATABASE_URL
+        self._engine = create_engine(self._db_url)
         sm = sessionmaker()
         sm.configure(bind=self._engine)
         self._session = sm()
