@@ -1,7 +1,7 @@
 from datetime import datetime
 import logging
 
-from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, func, create_engine, distinct
+from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, func, create_engine, distinct, Table
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -109,10 +109,14 @@ class DBDriver:
 
         :return:
         """
-        _logger.info("Drop DB")
-        Base.metadata.drop_all(self._engine)
-        _logger.info("Create new schema")
-        Base.metadata.create_all(self._engine)
+        _logger.info("Delete shows")
+        try:
+            self._session.query(ShowTime).delete()
+            self._session.query(Movie).delete()
+        except Exception as err:
+            _logger.error(repr(err))
+            return None
+
         _logger.info("Insert records")
         for movie in data:
             self.insert_movie(movie)
