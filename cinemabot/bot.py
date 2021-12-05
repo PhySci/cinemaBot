@@ -7,7 +7,8 @@ from aiogram.utils.markdown import text, bold
 
 from cinemabot.db import DBDriver
 from cinemabot.utils import setup_logging
-from cinemabot.settings import LOCAL_DEV, BOT_TOKEN
+from cinemabot.settings import LOCAL_DEV, BOT_TOKEN, WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT, WEBHOOK_URL
+
 
 import locale
 
@@ -61,17 +62,20 @@ async def show_start(message: Message):
     :return:
     """
     start_keyboard = InlineKeyboardMarkup()
-    start_keyboard.add(InlineKeyboardButton(text='Показать календарь',
+    start_keyboard.add(InlineKeyboardButton(text='Календарь',
                                             callback_data=date_cb.new(action='show_calendar', date='0')))
 
-    #start_keyboard.add(InlineKeyboardButton(text='Показать все фильмы',
-    #                                        callback_data=date_cb.new(action='show_all', date='0')))
+    start_keyboard.add(InlineKeyboardButton(text='Афиша',
+                                            callback_data=date_cb.new(action='show_all', date='0')))
 
-    await message.answer("Привет! \n Я телеграм-бот кинотеатра 'Два луча' и я могу помочь тебе выбрать подходящий сеанс."
-                         "Нажми кнопку 'Показать календарь', чтобы выбрать подходящую дату похода в кино.",
+    await message.answer("Привет! \n"
+                         "Я телеграм-бот кинотеатра 'Два луча' и я могу помочь тебе выбрать подходящий сеанс. \n"   
+                         "Выбери 'Показать календарь', чтобы выбрать подходящую дату похода в кино. \n" 
+                         "Или нажимай 'Афиша', чтобы увидеть все фильмы в прокате",
                          reply_markup=start_keyboard)
 
 
+# Нажатие на кнопку "Календарь"
 @dp.callback_query_handler(date_cb.filter(action='show_calendar'))
 async def show_calendar(query: CallbackQuery):
     """
@@ -80,15 +84,17 @@ async def show_calendar(query: CallbackQuery):
     :param query:
     :return:
     """
-    calendar_keyboard = InlineKeyboardMarkup()
+    keyboard = InlineKeyboardMarkup()
     db = DBDriver()
     for date in db.get_dates():
-        calendar_keyboard.add(InlineKeyboardButton(text=format_date(date[1]),
-                                                   callback_data=date_cb.new(action='show_date', date=date[2])))
+        keyboard.add(InlineKeyboardButton(text=format_date(date[1]),
+                                          callback_data=date_cb.new(action='show_date', date=date[2])))
     await bot.send_message(query.from_user.id,
-                           text='Когда вы хотели бы сходить в кино? Выберите дату.', reply_markup=calendar_keyboard)
+                           text='Когда вы хотели бы сходить в кино? Выберите дату.',
+                           reply_markup=keyboard)
 
 
+# Нажатие на кнопку "Афиша"
 @dp.callback_query_handler(date_cb.filter(action='show_all'))
 async def show_date_handler(query: CallbackQuery):
     """
@@ -97,17 +103,23 @@ async def show_date_handler(query: CallbackQuery):
     :param query:
     :return:
     """
+    keyboard = InlineKeyboardMarkup()
+    #keyboard.add(InlineKeyboardButton(text='Назад в главное меню',
+    #                                           callback_data=date_cb.new(action='back', date=-1)))
 
-    print('Here we are')
-    calendar_keyboard = InlineKeyboardMarkup()
-    calendar_keyboard.add(InlineKeyboardButton(text='Назад в главное меню',
-                                               callback_data=date_cb.new(action='back', date=-1)))
-    all_movies = get_all_movies()
-    for c in all_movies[:-1]:
-        await bot.send_message(query.from_user.id, text=c)
-    await bot.send_message(query.from_user.id, text=all_movies[-1], reply_markup=calendar_keyboard)
+    db = DBDriver()
+    for movie in db.get_movie_list():
+        item_text = movie.get('name') + '  (' + movie.get('genre') + ')'
+        callback = date_cb.new(action='show_movie_info', date=movie.get('id'))
+        keyboard.add(InlineKeyboardButton(text=item_text,
+                                          callback_data=callback))
+
+    await bot.send_message(query.from_user.id,
+                           text='Вот что я могу тебе предложить',
+                           reply_markup=keyboard)
 
 
+# Выбор конкретной даты в календаре
 @dp.callback_query_handler(date_cb.filter(action='show_date'))
 async def show_one_day_schedule(query: CallbackQuery):
     """
@@ -137,6 +149,7 @@ async def show_one_day_schedule(query: CallbackQuery):
                            reply_markup=keyboard)
 
 
+# Выбор конкретного фильма
 @dp.callback_query_handler(date_cb.filter(action='show_movie_info'))
 async def show_movie_info(query: CallbackQuery):
     """
@@ -173,7 +186,6 @@ async def show_movie_info(query: CallbackQuery):
 
 async def on_startup(dp):
     _logger.warning('Starting connection. ')
-    from cinemabot.settings import WEBHOOK_URL
     await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
 
 
@@ -190,7 +202,6 @@ def main():
         executor.start_polling(dp, skip_updates=True)
     else:
         print('Non local run')
-        from cinemabot.settings import WEBHOOK_URL, WEBHOOK_PATH, WEBAPP_HOST, WEBAPP_PORT
         print(WEBHOOK_URL)
         print(WEBHOOK_PATH)
         print(WEBAPP_HOST)

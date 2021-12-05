@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from cinemabot.settings import DATABASE_URL
+from typing import Dict, List
 
 Base = declarative_base()
 _logger = logging.getLogger(__name__)
@@ -142,3 +143,20 @@ class DBDriver:
             self._session.add(st)
         self._session.add(m)
         self._session.commit()
+
+    def get_movie_list(self) -> List[Dict]:
+        """
+        Returns list of movies that will be shown
+
+        :return:
+        """
+        res = list()
+        sess = self._session
+        q = sess.\
+            query(Movie). \
+            filter(func.date_trunc('day', ShowTime.date) >= datetime.today().date())
+
+        for el in q:
+            res.append(el.get_info())
+        return res
+
