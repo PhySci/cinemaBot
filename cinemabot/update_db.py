@@ -13,6 +13,10 @@ def main():
     data = parse()
     if len(data) == 0:
         _logger.warning("Parser returned no data!")
+        return None
+    else:
+        _logger.warning("Parser return %d records", len(data))
+
 
     driver = DBDriver()
     driver.update_db(data)

@@ -109,8 +109,11 @@ class DBDriver:
 
         :return:
         """
+        _logger.info("Drop DB")
         Base.metadata.drop_all(self._engine)
+        _logger.info("Create new schema")
         Base.metadata.create_all(self._engine)
+        _logger.info("Insert records")
         for movie in data:
             self.insert_movie(movie)
 
