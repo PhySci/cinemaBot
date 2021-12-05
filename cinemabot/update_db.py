@@ -17,10 +17,10 @@ def main():
     else:
         _logger.warning("Parser return %d records", len(data))
 
-
     driver = DBDriver()
     driver.update_db(data)
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()
