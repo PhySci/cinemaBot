@@ -161,7 +161,7 @@ async def show_movie_info(query: CallbackQuery):
 
     ts = ""
     for el in movie_info.get("show_time"):
-        ts = ts + " - " + el.strftime("%H:%M, %d %b %Y (%a)") + "\n"
+        ts = ts + "\U000025AA " + el.strftime("%H:%M, %d %b %Y (%a)") + "\n"
 
     s = text(
              bold(movie_info.get('name')),
@@ -173,7 +173,8 @@ async def show_movie_info(query: CallbackQuery):
              bold('Год выпуска: '), movie_info.get('date_created'), '\n',
              bold('Жанр: '), movie_info.get('genre'), '\n',
              "["+movie_info.get('name')+"]("+movie_info.get('image')+" caption)", "\n",
-             bold("Время показов:"), "\n", ts
+             bold("Время показов:"), "\n",
+             ts
     )
 
     start_keyboard = InlineKeyboardMarkup()
