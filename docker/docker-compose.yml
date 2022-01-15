@@ -13,5 +13,6 @@ services:
   adminer:
     image: adminer
     restart: always
+    container_name: tele_adminer
     ports:
     - 8090:8080

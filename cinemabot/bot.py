@@ -62,10 +62,9 @@ async def show_start(message: Message):
     :return:
     """
     start_keyboard = InlineKeyboardMarkup()
-    start_keyboard.add(InlineKeyboardButton(text='Календарь',
+    start_keyboard.add(InlineKeyboardButton(text='Календарь \U0001F4C5',
                                             callback_data=date_cb.new(action='show_calendar', date='0')))
-
-    start_keyboard.add(InlineKeyboardButton(text='Афиша',
+    start_keyboard.add(InlineKeyboardButton(text='Афиша \U0001F4E2',
                                             callback_data=date_cb.new(action='show_all', date='0')))
 
     await message.answer("Привет! \n"
@@ -104,8 +103,6 @@ async def show_date_handler(query: CallbackQuery):
     :return:
     """
     keyboard = InlineKeyboardMarkup()
-    #keyboard.add(InlineKeyboardButton(text='Назад в главное меню',
-    #                                           callback_data=date_cb.new(action='back', date=-1)))
 
     db = DBDriver()
     for movie in db.get_movie_list():
@@ -115,7 +112,7 @@ async def show_date_handler(query: CallbackQuery):
                                           callback_data=callback))
 
     await bot.send_message(query.from_user.id,
-                           text='Вот что я могу тебе предложить',
+                           text='Вот что я могу тебе предложить \U00002B07',
                            reply_markup=keyboard)
 
 
@@ -162,6 +159,10 @@ async def show_movie_info(query: CallbackQuery):
     db = DBDriver()
     movie_info = db.get_movie_info(movie_id)
 
+    ts = ""
+    for el in movie_info.get("show_time"):
+        ts = ts + " - " + el.strftime("%H:%M, %d %b %Y (%a)") + "\n"
+
     s = text(
              bold(movie_info.get('name')),
              '\n', '\n',
@@ -171,12 +172,15 @@ async def show_movie_info(query: CallbackQuery):
              bold('Продолжительность:'), movie_info.get('duration'), '\n',
              bold('Год выпуска: '), movie_info.get('date_created'), '\n',
              bold('Жанр: '), movie_info.get('genre'), '\n',
-             "["+movie_info.get('name')+"]("+movie_info.get('image')+" caption)"
+             "["+movie_info.get('name')+"]("+movie_info.get('image')+" caption)", "\n",
+             bold("Время показов:"), "\n", ts
     )
 
     start_keyboard = InlineKeyboardMarkup()
-    start_keyboard.add(InlineKeyboardButton(text='Показать календарь',
+    start_keyboard.add(InlineKeyboardButton(text='Календарь \U0001F4C5',
                                             callback_data=date_cb.new(action='show_calendar', date='0')))
+    start_keyboard.add(InlineKeyboardButton(text='Афиша \U0001F4E2',
+                                            callback_data=date_cb.new(action='show_all', date='0')))
 
     await bot.send_message(query.from_user.id,
                            text=s,

@@ -1,9 +1,10 @@
 from datetime import datetime
 import logging
 
-from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, func, create_engine, distinct, Table
+from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, func, create_engine, distinct
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.schema import MetaData
 
 from cinemabot.settings import DATABASE_URL
 from typing import Dict, List
@@ -29,7 +30,14 @@ class Movie(Base):
     def get_info(self):
         attrs = ['id', 'name', 'description', 'image', 'content_rating', 'duration', 'date_created', 'director',
                  'genre', 'actor']
-        return {k: self.__getattribute__(k) for k in attrs}
+        data = {k: self.__getattribute__(k) for k in attrs}
+
+        show_times = list()
+        for el in self.show_time:
+            show_times.append(el.date)
+        data.update({"show_time": show_times})
+
+        return data
 
 
 class ShowTime(Base):
@@ -115,7 +123,13 @@ class DBDriver:
             self._session.query(Movie).delete()
         except Exception as err:
             _logger.error(repr(err))
-            return None
+
+        try:
+            Base.metadata.create_all(self._engine)
+        except Exception as err:
+            _logger.error(repr(err))
+            raise err
+
 
         _logger.info("Insert records")
         for movie in data:
