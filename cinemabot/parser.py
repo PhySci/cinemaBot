@@ -130,7 +130,7 @@ def parse_url(url: str):
     :param url:
     :return:
     """
-    pattern = "^https://[\w.]+/\?date=(?P<date>[\d/]+)&city=(?P<city>[\d]+)&facility=(?P<facility>[\d\w.-]+)"
+    pattern = "^https://[\w.]+/\?date=(?P<date>[\d/]+)&city=(?P<city>[\w\d]+)&facility=(?P<facility>[\d\w.-]+)"
     m = re.match(pattern, url)
     if m is None:
         _logger.warning("Can not parse page %s", url)
