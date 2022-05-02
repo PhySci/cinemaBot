@@ -97,7 +97,7 @@ def parse_main_page(html: str):
     for day_tab in day_tabs:
         link = ROOT_URL + day_tab.attrs["href"]
         print(link)
-        date, _, _ = parse_url(link)
+        date, _ = parse_url(link)
         r = get_url(link)
         if r.status_code != 200:
             print('Can not load page')
@@ -130,15 +130,15 @@ def parse_url(url: str):
     :param url:
     :return:
     """
-    pattern = "^https://[\w.]+/\?date=(?P<date>[\d/]+)&city=(?P<city>[\w\d]+)&facility=(?P<facility>[\d\w.-]+)"
+    pattern = "^https://[\w.]+/\?date=(?P<date>[\d/]+)&facility=(?P<facility>[\d\w.-]+)"
     m = re.match(pattern, url)
     if m is None:
         _logger.warning("Can not parse page %s", url)
-        return '', '', ''
-    if len(m.groups()) == 3:
-        return m['date'], m['city'], m['facility']
+        return '', ''
+    if len(m.groups()) == 2:
+        return m['date'], m['facility']
     else:
-        return '', '', ''
+        return '', ''
 
 
 def parse_one_day_page(page: str):
